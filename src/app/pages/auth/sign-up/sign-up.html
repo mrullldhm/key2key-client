@@ -1,0 +1,46 @@
+<div class="bg-zinc-950 text-zinc-50 min-h-screen font-sans">
+  <section class="max-w-xl mx-auto px-8 pt-18">
+    <h1 class="text-5xl font-light leading-tight tracking-tight mb-18">
+      Create your <span class="border font-mono text-4xl">Key2Key</span>
+    </h1>
+
+    <p class="text-neutral-400 font-light mb-6 text-sm">
+      Your passwords are encrypted before they ever leave your device. We never see them. We never
+      store them in plaintext.
+    </p>
+
+    <form class="space-y-10">
+      <div class="border-b border-neutral-800 pb-2">
+        <label class="text-xs uppercase tracking-widest text-neutral-500"> Email </label>
+        <input
+          type="email"
+          class="w-full bg-transparent text-zinc-50 text-lg font-light focus:outline-none pt-3"
+        />
+      </div>
+
+      <div class="border-b border-neutral-800 pb-2">
+        <label class="text-xs uppercase tracking-widest text-neutral-500"> Password </label>
+        <input
+          type="password"
+          class="w-full bg-transparent text-zinc-50 text-lg font-light focus:outline-none pt-3"
+        />
+      </div>
+
+      <button
+        class="cursor-pointer text-lg font-light tracking-wider p-2 border hover:text-neutral-400 transition-colors"
+      >
+        Create account →
+      </button>
+    </form>
+
+    <p class="mt-16 text-sm text-neutral-500">
+      Already have an account?
+      <a
+        routerLink="/sign-up"
+        class="text-zinc-50 border-b cursor-pointer hover:text-neutral-400 transition-colors"
+      >
+        Sign in
+      </a>
+    </p>
+  </section>
+</div>

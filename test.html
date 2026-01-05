@@ -1,0 +1,102 @@
+<div class="min-h-screen bg-zinc-950">
+      <!-- Header -->
+      <div class="border-b border-neutral-800 sticky top-0 z-40 bg-zinc-950/95 backdrop-blur-sm">
+        <div class="max-w-7xl mx-auto px-8 py-6">
+          <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-light tracking-tight">Your Vault</h1>
+            <a
+              routerLink="/dashboard/add-credential"
+              class="bg-neutral-800 hover:bg-neutral-700 px-6 py-2 rounded text-sm font-light transition-colors"
+            >
+              + Add Password
+            </a>
+          </div>
+
+          <!-- Search & Filter -->
+          <div class="flex gap-4">
+            <input
+              type="text"
+              [(ngModel)]="searchQuery"
+              (keyup)="onSearch()"
+              placeholder="Search credentials..."
+              class="flex-1 bg-neutral-900 border border-neutral-800 rounded px-4 py-2 text-sm focus:outline-none focus:border-neutral-600 transition-colors"
+            />
+            <select
+              [(ngModel)]="selectedCategory"
+              (change)="onFilterChange()"
+              class="bg-neutral-900 border border-neutral-800 rounded px-4 py-2 text-sm focus:outline-none focus:border-neutral-600 transition-colors"
+            >
+              <option value="">All Categories</option>
+              <option value="social">Social Media</option>
+              <option value="email">Email</option>
+              <option value="banking">Banking</option>
+              <option value="work">Work</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Credentials List -->
+      <div class="max-w-7xl mx-auto px-8 py-12">
+        <div *ngIf="filteredCredentials.length === 0" class="text-center py-24">
+          <p class="text-neutral-400 font-light">
+            {{
+              searchQuery || selectedCategory
+                ? 'No credentials found'
+                : 'No credentials yet. Create your first password.'
+            }}
+          </p>
+        </div>
+
+        <div
+          *ngIf="filteredCredentials.length > 0"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
+          <div
+            *ngFor="let credential of filteredCredentials"
+            class="bg-neutral-900 border border-neutral-800 rounded-lg p-6 hover:border-neutral-700 transition-colors cursor-pointer"
+            [routerLink]="['/dashboard/credential', credential.id]"
+          >
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <h3 class="text-lg font-light mb-1">{{ credential.title }}</h3>
+                <p class="text-xs text-neutral-500 uppercase tracking-wider">
+                  {{ credential.category || 'Other' }}
+                </p>
+              </div>
+              <span class="text-2xl">🔐</span>
+            </div>
+
+            <div class="space-y-2 text-sm">
+              <p class="text-neutral-400">
+                <span class="text-neutral-600">Username:</span> {{ credential.username }}
+              </p>
+              <p *ngIf="credential.url" class="text-neutral-400 truncate">
+                <span class="text-neutral-600">URL:</span> {{ credential.url }}
+              </p>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-neutral-800 flex justify-between">
+              <span class="text-xs text-neutral-500">
+                Updated {{ formatDate(credential.updatedAt) }}
+              </span>
+              <div class="flex gap-2">
+                <button
+                  (click)="editCredential($event, credential.id)"
+                  class="text-xs text-neutral-400 hover:text-neutral-200 transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  (click)="deleteCredential($event, credential.id)"
+                  class="text-xs text-red-500 hover:text-red-400 transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
