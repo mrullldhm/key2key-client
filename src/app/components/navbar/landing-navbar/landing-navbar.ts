@@ -2,11 +2,11 @@ import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'app-navbar',
+  selector: 'app-landing-navbar',
   imports: [RouterLink],
-  templateUrl: './navbar.html',
-  styleUrl: './navbar.scss',
+  templateUrl: './landing-navbar.html',
+  styleUrl: './landing-navbar.scss',
 })
-export class Navbar {
+export class LandingNavbar {
   protected readonly title = signal('KEY2KEY');
 }
