@@ -1,20 +1,45 @@
+// import { Routes } from '@angular/router';
+
+// export const routes: Routes = [
+//   {
+//     path: '',
+//     pathMatch: 'full',
+//     loadComponent: () => {
+//       return import('./layouts/landing-layout/landing-layout').then((m) => m.LandingLayout);
+//     },
+//   },
+
+//   {
+//     path: 'dashboard',
+//     pathMatch: 'full',
+//     loadComponent: () => {
+//       return import('./pages/dashboard/dashboard').then((m) => m.Dashboard);
+//     },
+//   },
+
+// ];
 import { Routes } from '@angular/router';
+
+import { LandingLayout } from './layouts/landing-layout/landing-layout';
+import { DashboardLayout } from './layouts/dashboard-layout/dashboard-layout';
+
+import { Landing } from './pages/landing/landing';
+import { Dashboard } from './pages/dashboard/dashboard';
 
 export const routes: Routes = [
   {
     path: '',
-    pathMatch: 'full',
-    loadComponent: () => {
-      return import('./pages/landing/landing').then((m) => m.Landing);
-    },
+    component: LandingLayout,
+    children: [{ path: '', component: Landing }],
   },
 
   {
-    path: 'home',
-    pathMatch: 'full',
-    loadComponent: () => {
-      return import('./pages/home/home').then((m) => m.Home);
-    },
+    path: '',
+    component: DashboardLayout,
+    children: [
+      { path: 'dashboard', component: Dashboard },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    ],
   },
 
   {
@@ -25,11 +50,13 @@ export const routes: Routes = [
     },
   },
 
-    {
+  {
     path: 'sign-in',
     pathMatch: 'full',
     loadComponent: () => {
       return import('./pages/auth/sign-in/sign-in').then((m) => m.SignIn);
     },
   },
+
+  { path: '**', redirectTo: '' },
 ];
