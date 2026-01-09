@@ -25,6 +25,7 @@ import { DashboardLayout } from './layouts/dashboard-layout/dashboard-layout';
 
 import { Landing } from './pages/landing/landing';
 import { Dashboard } from './pages/dashboard/dashboard';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -37,7 +38,7 @@ export const routes: Routes = [
     path: '',
     component: DashboardLayout,
     children: [
-      { path: 'dashboard', component: Dashboard },
+      { path: 'dashboard', component: Dashboard, canActivate: [authGuard], },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
