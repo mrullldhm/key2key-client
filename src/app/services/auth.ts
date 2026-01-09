@@ -43,6 +43,10 @@ export class Auth {
   }
 
   logout() {
+    // 1. Remove the JWT from storage
     localStorage.removeItem('k2k_token');
+
+    // 2. Redirect to landing page or sign-in
+    // Note: We will add a 'VaultStateService' clear call here in a moment
   }
 }

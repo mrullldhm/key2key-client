@@ -69,7 +69,7 @@ export class Crypto {
     );
   }
 
-  private async hashForServer(password: string, salt: string): Promise<string> {
+  async hashForServer(password: string, salt: string): Promise<string> {
     const data = this.encoder.encode(password + salt);
     const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
     return Array.from(new Uint8Array(hashBuffer))
@@ -84,5 +84,42 @@ export class Crypto {
       iv: btoa(String.fromCharCode(...iv)),
       ciphertext: btoa(String.fromCharCode(...new Uint8Array(ciphertext))),
     };
+  }
+
+  /**
+   * PHASE 2: SIGN IN
+   * Unlocks the encrypted private key using the Master Key
+   */
+  async unlockPrivateKey(encryptedDataJson: string, masterKey: CryptoKey): Promise<CryptoKey> {
+    const { iv, ciphertext } = JSON.parse(encryptedDataJson);
+
+    // 1. Decode from Base64
+    const ivBuffer = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+    const dataBuffer = Uint8Array.from(atob(ciphertext), (c) => c.charCodeAt(0));
+
+    // 2. Decrypt the PKCS8 data
+    const decryptedBuffer = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ivBuffer },
+      masterKey,
+      dataBuffer
+    );
+
+    // 3. Import it back as a usable RSA CryptoKey
+    return await window.crypto.subtle.importKey(
+      'pkcs8',
+      decryptedBuffer,
+      {
+        name: 'RSA-OAEP',
+        hash: 'SHA-256',
+      },
+      true,
+      ['decrypt'] // Private key is for decrypting shared data
+    );
+  }
+
+  // Add this small helper for login to recreate the same Master Key
+  async recreateMasterKey(password: string, saltHex: string): Promise<CryptoKey> {
+    const saltBuffer = new Uint8Array(saltHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
+    return await this.deriveMasterKey(password, saltBuffer);
   }
 }
