@@ -9,27 +9,42 @@
       Unlock your vault. Everything stays encrypted.
     </p>
 
-    <form class="space-y-10">
+    <form #signInForm="ngForm" (ngSubmit)="onUnlock(signInForm)" class="space-y-10">
       <div class="border-b border-neutral-800 pb-2">
         <label class="text-xs uppercase tracking-widest text-neutral-500"> Email </label>
         <input
           type="email"
+          name="email"
+          ngModel
+          required
           class="w-full bg-transparent text-zinc-50 text-lg font-light focus:outline-none pt-3"
         />
       </div>
 
-      <div class="border-b border-neutral-800 pb-2">
+      <div class="border-b border-neutral-800 pb-2 relative">
         <label class="text-xs uppercase tracking-widest text-neutral-500"> Password </label>
         <input
-          type="password"
+          [type]="showPassword() ? 'text' : 'password'"
+          ngModel
+          name="password"
+          required
           class="w-full bg-transparent text-zinc-50 text-lg font-light focus:outline-none pt-3"
         />
+
+        <button
+          type="button"
+          (click)="togglePassword()"
+          class="absolute right-0 top-7 text-xs uppercase tracking-widest text-neutral-500 hover:text-zinc-50 transition cursor-pointer"
+        >
+          {{ showPassword() ? 'Hide' : 'Show' }}
+        </button>
       </div>
 
       <button
+        [disabled]="isLoading()"
         class="cursor-pointer text-lg font-light tracking-wider p-2 border hover:text-neutral-400 transition-colors"
       >
-        Unlock →
+        {{ isLoading() ? 'Unlocking...' : 'Unlock →' }}
       </button>
     </form>
 
