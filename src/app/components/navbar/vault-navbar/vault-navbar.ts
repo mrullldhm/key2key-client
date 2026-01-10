@@ -11,18 +11,5 @@ import { VaultState } from '../../../services/vault-state';
   styleUrl: './vault-navbar.scss',
 })
 export class VaultNavbar {
-  private authService = inject(Auth);
-  private vaultState = inject(VaultState);
-  private router = inject(Router);
 
-  onLogout() {
-    // 1. Clear the sensitive keys from Angular Signals (RAM)
-    this.vaultState.clearVault();
-
-    // 2. Clear the JWT
-    this.authService.logout();
-
-    // 3. Go back to landing
-    this.router.navigate(['/']);
-  }
 }
