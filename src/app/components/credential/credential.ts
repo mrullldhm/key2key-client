@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 
 @Component({
   selector: 'app-credential',
@@ -7,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrl: './credential.scss',
 })
 export class Credential {
+  showPassword = signal(false);
 
+  togglePassword() {
+    this.showPassword.update((v) => !v);
+  }
 }
