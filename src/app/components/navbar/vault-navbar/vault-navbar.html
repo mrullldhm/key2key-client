@@ -14,8 +14,8 @@
       />
     </div>
 
-    <button class="hover:text-zinc-50 transition cursor-pointer">Dashboard</button>
+    <button (click)="navigate.emit('dashboard')" class="hover:text-zinc-50 transition cursor-pointer">Dashboard</button>
 
-    <button class="hover:text-zinc-50 transition cursor-pointer">Password Generator</button>
+    <button (click)="navigate.emit('generator')" class="hover:text-zinc-50 transition cursor-pointer">Password Generator</button>
   </nav>
 </header>

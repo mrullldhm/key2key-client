@@ -1,7 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { Auth } from '../../../services/auth';
-import { Router } from '@angular/router';
-import { VaultState } from '../../../services/vault-state';
+import { Component, EventEmitter, inject, Output } from '@angular/core';
 
 @Component({
   selector: 'app-vault-navbar',
@@ -11,5 +8,13 @@ import { VaultState } from '../../../services/vault-state';
   styleUrl: './vault-navbar.scss',
 })
 export class VaultNavbar {
+  @Output() navigate = new EventEmitter<'dashboard' | 'generator'>();
 
+  goDashboard() {
+    this.navigate.emit('dashboard');
+  }
+
+  goGenerator() {
+    this.navigate.emit('generator');
+  }
 }
