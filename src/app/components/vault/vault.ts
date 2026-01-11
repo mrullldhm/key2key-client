@@ -4,11 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { VaultState } from '../../services/vault-state';
 import { Crypto } from '../../services/crypto';
 import { Credential } from '../credential/credential';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-vault',
   standalone: true,
-  imports: [Credential],
+  imports: [Credential, FormsModule, CommonModule],
   templateUrl: './vault.html',
   styleUrl: './vault.scss',
 })
@@ -24,6 +26,9 @@ export class Vault implements OnInit {
   // Holds the single item the user clicked on
   selectedItem = signal<any | null>(null);
   showSecret = signal(false); // For the popup's password visibility
+
+  isEditMode = signal(false); // Toggle between View and Edit mode
+  isUpdating = signal(false); // Loading state for the update button
 
   ngOnInit() {
     this.loadVault();
@@ -56,7 +61,7 @@ export class Vault implements OnInit {
               username: item.credential.encryptedUsername, // Or decrypt this if you encrypted it
               password: decryptedData.password,
               notes: decryptedData.notes,
-              url: item.credential.logInUrl, 
+              url: item.credential.logInUrl,
               updatedAt: item.credential.updateAt,
             });
           } catch (err) {
@@ -79,11 +84,74 @@ export class Vault implements OnInit {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  // Popout credential list
+  // Popup credential list
   selectItem(item: any) {
-    this.selectedItem.set(item);
+    // this.selectedItem.set(item);
     this.showSecret.set(false); // Reset eye icon when opening new item
+    this.selectedItem.set({ ...item }); // Spread to create a copy for editing
+    this.isEditMode.set(false);
   }
+
+  // UPDATE & DELETE
+  toggleEdit() {
+    this.isEditMode.update((v) => !v);
+  }
+
+  async onUpdate() {
+    const item = this.selectedItem();
+    const user = this.vaultState.user();
+    if (!item || !user) return;
+
+    this.isUpdating.set(true);
+    try {
+      // Re-encrypt the potentially modified password/notes
+      const encryptedPayload = await this.cryptoService.encryptCredential(
+        { password: item.password, notes: item.notes },
+        user.publicKey
+      );
+
+      const payload = {
+        title: item.title,
+        logInUrl: item.url,
+        notes: item.notes,
+        encryptedUsername: item.username,
+        encryptedPassword: encryptedPayload.encryptedData,
+        iv: encryptedPayload.iv,
+        encryptedDataKey: encryptedPayload.encryptedDataKey,
+      };
+
+      this.http.put(`${environment.apiUrl}/credential/${item.id}`, payload).subscribe({
+        next: () => {
+          this.isEditMode.set(false);
+          this.loadVault(); // Refresh list
+          this.isUpdating.set(false);
+        },
+        error: (err) => {
+          console.error(err);
+          this.isUpdating.set(false);
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      this.isUpdating.set(false);
+    }
+  }
+
+  onDelete() {
+    const item = this.selectedItem();
+    if (!item) return;
+
+    if (confirm(`Are you sure you want to delete ${item.title}?`)) {
+      this.http.delete(`${environment.apiUrl}/credential/${item.id}`).subscribe({
+        next: () => {
+          this.closePopup();
+          this.loadVault();
+        },
+        error: (err) => console.error(err),
+      });
+    }
+  }
+  //
 
   closePopup() {
     this.selectedItem.set(null);
@@ -93,7 +161,7 @@ export class Vault implements OnInit {
     this.showSecret.update((v) => !v);
   }
 
-  // Popout add credential
+  // Popup add credential
   // Add this to your Vault class
   isAddModalOpen = signal(false);
 

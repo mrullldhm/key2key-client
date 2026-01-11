@@ -48,7 +48,7 @@
   (click)="closePopup()"
   class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
 >
-  <section
+  <!-- <section
     (click)="$event.stopPropagation()"
     class="bg-zinc-950 text-zinc-50 p-8 rounded-xl border border-neutral-800 w-full max-w-2xl shadow-2xl"
   >
@@ -125,6 +125,140 @@
       >
         Close Detail
       </button>
+    </div>
+  </section> -->
+  <section
+    (click)="$event.stopPropagation()"
+    class="bg-zinc-950 text-zinc-50 p-8 rounded-xl border border-neutral-800 w-full max-w-2xl shadow-2xl"
+  >
+    <h2 class="text-3xl font-light mb-8 tracking-tight text-center">
+      {{ isEditMode() ? 'Edit Credential' : 'Credential Details' }}
+    </h2>
+
+    <div class="space-y-6">
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Service</label>
+        @if (isEditMode()) {
+        <input
+          [(ngModel)]="selectedItem().title"
+          class="w-full bg-zinc-900 border border-neutral-800 rounded px-3 py-2 text-zinc-50 focus:outline-none"
+        />
+        } @else {
+        <p class="text-xl text-zinc-50">{{ selectedItem().title }}</p>
+        }
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest"
+          >Username</label
+        >
+        @if (isEditMode()) {
+        <input
+          [(ngModel)]="selectedItem().username"
+          class="w-full bg-zinc-900 border border-neutral-800 rounded px-3 py-2 text-zinc-50 focus:outline-none"
+        />
+        } @else {
+        <div class="bg-zinc-900/50 p-3 rounded border border-neutral-800/50">
+          <p class="text-zinc-50">{{ selectedItem().username }}</p>
+        </div>
+        }
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest"
+          >Password</label
+        >
+        <div
+          class="flex items-center justify-between bg-zinc-900 border border-neutral-800 rounded px-4 py-3"
+        >
+          @if (isEditMode()) {
+          <input
+            [(ngModel)]="selectedItem().password"
+            [type]="showSecret() ? 'text' : 'password'"
+            class="w-full bg-transparent text-zinc-50 focus:outline-none font-mono"
+          />
+          } @else {
+          <p class="font-mono text-zinc-50">
+            {{ showSecret() ? selectedItem().password : '••••••••••••' }}
+          </p>
+          }
+          <button
+            (click)="toggleSecret()"
+            class="cursor-pointer text-neutral-400 hover:text-zinc-50 ml-2"
+          >
+            {{ showSecret() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Website</label>
+        @if (isEditMode()) {
+        <input
+          [(ngModel)]="selectedItem().url"
+          class="w-full bg-zinc-900 border border-neutral-800 rounded px-3 py-2 text-zinc-50 focus:outline-none"
+        />
+        } @else {
+        <div class="bg-zinc-900/50 p-3 rounded border border-neutral-800/50 truncate">
+          <a [href]="selectedItem().url" target="_blank" class="hover:underline cursor-pointer">{{
+            selectedItem().url || 'No URL saved'
+          }}</a>
+        </div>
+        }
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Notes</label>
+        @if (isEditMode()) {
+        <textarea
+          [(ngModel)]="selectedItem().notes"
+          rows="3"
+          class="w-full bg-zinc-900 border border-neutral-800 rounded px-3 py-2 text-zinc-50 focus:outline-none resize-none"
+        ></textarea>
+        } @else {
+        <div
+          class="bg-zinc-900/30 p-4 rounded border border-neutral-800/50 italic text-neutral-300 min-h-[50px]"
+        >
+          {{ selectedItem().notes || 'No notes' }}
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-neutral-800 flex justify-between items-center">
+      @if (isEditMode()) {
+      <button (click)="toggleEdit()" class="text-sm text-neutral-400 hover:text-zinc-50">
+        Cancel
+      </button>
+      <button
+        (click)="onUpdate()"
+        [disabled]="isUpdating()"
+        class="bg-zinc-50 text-zinc-950 px-6 py-2 rounded-full text-sm font-medium hover:bg-zinc-200 transition"
+      >
+        {{ isUpdating() ? 'Updating...' : 'Save Changes' }}
+      </button>
+      } @else {
+      <button
+        (click)="onDelete()"
+        class="cursor-pointer text-red-500/70 hover:text-red-500 uppercase tracking-widest"
+      >
+        Delete
+      </button>
+      <div class="flex gap-4">
+        <button
+          (click)="toggleEdit()"
+          class="cursor-pointer text-blue-400 hover:text-blue-500 uppercase tracking-widest"
+        >
+          Edit
+        </button>
+        <button
+          (click)="closePopup()"
+          class="cursor-pointer text-neutral-400 hover:text-zinc-50 uppercase tracking-widest"
+        >
+          Close
+        </button>
+      </div>
+      }
     </div>
   </section>
 </div>
