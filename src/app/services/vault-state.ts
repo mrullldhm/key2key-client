@@ -27,4 +27,7 @@ export class VaultState {
     this.user.set(null);
     console.log('Vault memory cleared.');
   }
+
+  // Inside your VaultState service
+  searchQuery = signal<string>('');
 }
