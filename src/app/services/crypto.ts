@@ -44,6 +44,8 @@ export class Crypto {
       authHash: authHash,
       publicKey: publicKeyString,
       encryptedPrivateKey: JSON.stringify(encryptedPrivKey),
+      rawMasterKey: masterKey,
+      rawPrivateKey: keyPair.privateKey,
     };
   }
 
