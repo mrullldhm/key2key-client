@@ -4,32 +4,22 @@
   <!-- CENTERED LAYOUT ZONE -->
   <div class="flex-1 flex px-10 py-8">
     <div class="w-full">
+      @if (currentView === 'dashboard') { @if (isVaultEmpty()) {
+      <!-- Center First Timer only -->
+      <div class="flex items-center justify-center h-full">
+        <app-first-timer (addFirst)="onNavigate('add-credential')" />
+      </div>
+      } @else {
+      <app-vault />
+      } } @else if (currentView === 'add-credential') {
 
-      @if (currentView === 'dashboard') {
-
-        @if (isVaultEmpty()) {
-          <!-- Center First Timer only -->
-          <div class="flex items-center justify-center h-full">
-            <app-first-timer
-              (addFirst)="onNavigate('add-credential')"
-            />
-          </div>
-        } @else {
-          <app-vault />
-        }
-
-      } @else if (currentView === 'add-credential') {
-
-        <app-credential
-          (cancel)="onNavigate('dashboard')"
-        />
+      <app-credential (cancel)="onNavigate('dashboard')" />
 
       } @else if (currentView === 'generator') {
 
-        <app-password-generator />
+      <app-password-generator />
 
       }
-
     </div>
   </div>
 
