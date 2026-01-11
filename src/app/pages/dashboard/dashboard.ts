@@ -1,15 +1,36 @@
 import { Component, signal } from '@angular/core';
-import { Sidebar } from '../../components/sidebar/sidebar';
 import { Vault } from '../../components/vault/vault';
 import { FirstTimer } from '../../components/first-timer/first-timer';
 import { PasswordGenerator } from '../../components/generator/password-generator/password-generator';
+import { VaultNavbar } from '../../components/navbar/vault-navbar/vault-navbar';
+import { Footer } from '../../components/footer/footer';
 import { Credential } from '../../components/credential/credential';
-import { QrGenerator } from '../../components/generator/qr-generator/qr-generator';
+
+export type DashboardView = 'dashboard' | 'generator' | 'add-credential';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Sidebar, Vault, FirstTimer, PasswordGenerator, Credential, QrGenerator],
+  standalone: true,
+  imports: [VaultNavbar, Vault, FirstTimer, PasswordGenerator, Footer, Credential],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class Dashboard {}
+export class Dashboard {
+  currentView: DashboardView = 'dashboard';
+
+  // Later replace with API data
+  vaultItems: any[] = [];
+
+  isVaultEmpty() {
+    return this.vaultItems.length === 0;
+  }
+
+  onNavigate(view: DashboardView) {
+    this.currentView = view;
+  }
+
+  // FirstTimer → Vault instantly after user adds their first password
+    addPassword(password: any) {
+    this.vaultItems.push(password);
+  }
+}
