@@ -34,7 +34,6 @@ export class Credential {
 
     const { service, username, password, url, notes } = form.value;
     const user = this.vaultState.user();
-    console.log('Current User State:', user); // DEBUG LINE
 
     // This check tells TypeScript: "If user is null, stop here."
     // Once we pass this check, TypeScript knows user.publicKey is a string.
@@ -68,6 +67,7 @@ export class Credential {
         next: () => {
           alert('Credential saved securely!');
           form.reset();
+          this.onCancel(); // <--- This triggers the EventEmitter to close the modal
         },
         error: (err) => console.error('Save failed', err),
       });
