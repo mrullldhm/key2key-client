@@ -13,8 +13,8 @@
   @if (isLoading()) {
   <p class="text-neutral-500">Decrypting your vault...</p>
   } @else {
-  <div class="space-y-6">
-    @for (item of decryptedItems(); track item.id) {
+<div class="space-y-6">
+  @for (item of filteredItems(); track item.id) {
     <div
       (click)="selectItem(item)"
       class="flex justify-between items-center border-b border-neutral-800 pb-4 cursor-pointer hover:bg-zinc-900/40 transition px-2 rounded-sm"
@@ -29,9 +29,10 @@
         </span>
       </div>
     </div>
-    }
-  </div>
+  } @empty {
+    <p class="text-neutral-500 text-center py-10">No credentials found matching "{{ vaultState.searchQuery() }}"</p>
   }
+</div>  }
 </main>
 
 @if (isAddModalOpen()) {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { VaultState } from '../../services/vault-state';
@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
 })
 export class Vault implements OnInit {
   private http = inject(HttpClient);
-  private vaultState = inject(VaultState);
+  public vaultState = inject(VaultState);
   private cryptoService = inject(Crypto);
 
   // This will hold the decrypted passwords for display
@@ -29,6 +29,18 @@ export class Vault implements OnInit {
 
   isEditMode = signal(false); // Toggle between View and Edit mode
   isUpdating = signal(false); // Loading state for the update button
+
+  // Filtered list based on search
+  filteredItems = computed(() => {
+    const query = this.vaultState.searchQuery().toLowerCase().trim();
+    const items = this.decryptedItems();
+
+    if (!query) return items;
+
+    return items.filter(item => 
+      item.title.toLowerCase().includes(query)
+    );
+  });
 
   ngOnInit() {
     this.loadVault();
