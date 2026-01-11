@@ -1,26 +1,178 @@
 <main class="flex-1 px-10 py-8">
-  <h1 class="text-3xl font-light tracking-tight mb-10">All passwords</h1>
+  <div class="flex justify-between items-end mb-10">
+    <h1 class="text-4xl font-light tracking-tight">All Credential</h1>
 
+    <button
+      (click)="openAddModal()"
+      class="cursor-pointer items-center gap-2 px-4 py-2 bg-zinc-50 text-zinc-950 rounded-full hover:bg-zinc-200 transition-all font-medium text-sm active:scale-95"
+    >
+      <span>+</span> Add Credential
+    </button>
+  </div>
+
+  @if (isLoading()) {
+  <p class="text-neutral-500">Decrypting your vault...</p>
+  } @else {
   <div class="space-y-6">
-    <!-- Item -->
+    @for (item of decryptedItems(); track item.id) {
     <div
-      class="flex justify-between items-center border-b border-neutral-800 pb-4 cursor-pointer hover:bg-zinc-900/40 transition"
+      (click)="selectItem(item)"
+      class="flex justify-between items-center border-b border-neutral-800 pb-4 cursor-pointer hover:bg-zinc-900/40 transition px-2 rounded-sm"
     >
       <div>
-        <p class="text-zinc-50">GitHub</p>
-        <p class="text-sm text-neutral-400">amirul@github.com</p>
+        <p class="text-zinc-50">{{ item.title }}</p>
+        <p class="text-sm text-neutral-400">{{ item.username }}</p>
       </div>
-      <span class="text-xs text-neutral-500"> Updated 2 days ago </span>
+      <div class="text-right">
+        <span class="text-xs text-neutral-500 block">
+          Updated {{ formatDate(item.updatedAt) }}
+        </span>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</main>
+
+@if (isAddModalOpen()) {
+<div
+  (click)="closeAddModal()"
+  class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 backdrop-blur-md p-4"
+>
+  <div (click)="$event.stopPropagation()" class="w-full max-w-2xl">
+    <app-credential (cancel)="closeAddModal()" />
+  </div>
+</div>
+} @if (selectedItem()) {
+<div
+  (click)="closePopup()"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+>
+  <section
+    (click)="$event.stopPropagation()"
+    class="bg-zinc-950 text-zinc-50 p-8 rounded-xl border border-neutral-800 w-full max-w-2xl shadow-2xl"
+  >
+    <h2 class="text-3xl font-light mb-8 tracking-tight text-center">Credential Details</h2>
+
+    <div class="space-y-6">
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Service</label>
+        <p class="text-xl text-zinc-50">{{ selectedItem().title }}</p>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest"
+          >Username</label
+        >
+        <div
+          class="flex justify-between items-center bg-zinc-900/50 p-3 rounded border border-neutral-800/50"
+        >
+          <p class="text-zinc-50">{{ selectedItem().username }}</p>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest"
+          >Password</label
+        >
+        <div
+          class="flex items-center justify-between bg-zinc-900 border border-neutral-800 rounded px-4 py-3"
+        >
+          <p class="font-mono text-zinc-50">
+            {{ showSecret() ? selectedItem().password : '••••••••••••' }}
+          </p>
+          <button
+            (click)="toggleSecret()"
+            class="text-sm text-neutral-400 hover:text-zinc-50 transition"
+          >
+            {{ showSecret() ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Website</label>
+        <div
+          class="flex justify-between items-center bg-zinc-900/50 p-3 rounded border border-neutral-800/50"
+        >
+          <a
+            [href]="selectedItem().url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:underline"
+          >
+            {{ selectedItem().url || 'No URL saved' }}
+          </a>
+        </div>
+      </div>
+
+      @if (selectedItem().notes) {
+      <div class="space-y-1">
+        <label class="text-xs font-light text-neutral-500 uppercase tracking-widest">Notes</label>
+        <div
+          class="bg-zinc-900/30 p-4 rounded border border-neutral-800/50 italic text-neutral-300"
+        >
+          {{ selectedItem().notes }}
+        </div>
+      </div>
+      }
     </div>
 
+    <div class="mt-10 pt-6 border-t border-neutral-800 flex justify-center">
+      <button
+        (click)="closePopup()"
+        class="text-sm font-light text-neutral-400 hover:text-zinc-50 transition uppercase tracking-widest"
+      >
+        Close Detail
+      </button>
+    </div>
+  </section>
+</div>
+}
+
+<!-- <main class="flex-1 px-10 py-8">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-light tracking-tight">All passwords</h1> -->
+
+<!-- Action Buttons -->
+<!-- <div class="flex gap-3"> -->
+<!-- Add Button -->
+<!-- <button
+        class="bg-zinc-800 text-zinc-50 px-4 py-2 rounded hover:bg-zinc-700 transition"
+        (click)="addCredential()"
+      >
+        Add
+      </button> -->
+
+<!-- Favourite Button -->
+<!-- <button
+        class="bg-zinc-800 text-zinc-50 px-4 py-2 rounded hover:bg-zinc-700 transition"
+        (click)="showFavourites()"
+      >
+        Favourite
+      </button> -->
+
+<!-- Shared Button -->
+<!-- <button
+        class="bg-zinc-800 text-zinc-50 px-4 py-2 rounded hover:bg-zinc-700 transition"
+        (click)="showShared()"
+      >
+        Shared
+      </button>
+    </div>
+  </div> -->
+
+<!-- Credential List -->
+<!-- <div class="space-y-6">
     <div
+      *ngFor="let item of displayedItems"
       class="flex justify-between items-center border-b border-neutral-800 pb-4 cursor-pointer hover:bg-zinc-900/40 transition"
     >
       <div>
-        <p class="text-zinc-50">Google</p>
-        <p class="text-sm text-neutral-400">amirul@gmail.com</p>
+        <p class="text-zinc-50">{{ item.name }}</p>
+        <p class="text-sm text-neutral-400">{{ item.email }}</p>
       </div>
-      <span class="text-xs text-neutral-500"> Updated yesterday </span>
+      <span class="text-xs text-neutral-500"> Updated {{ item.updatedAgo }} </span>
     </div>
   </div>
-</main>
+</main> -->
