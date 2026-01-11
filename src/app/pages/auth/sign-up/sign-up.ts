@@ -48,10 +48,17 @@ export class SignUp {
         .subscribe({
           next: (res) => {
             console.log('Signup success!', res);
-            // Store keys in memory before navigating
-            // Note: During signup, we already have these as CryptoKey objects
-            // before they were exported to strings!
-            this.vaultState.user.set(res.data.user);
+            // Merge the backend user data with the publicKey we just generated
+            this.vaultState.user.set({
+              ...res.data.user,
+              publicKey: vaultData.publicKey, // Manually add the key we have in memory
+            });
+
+            // 2. Set the actual CryptoKey objects so the vault is "Unlocked"
+            // These come from the 'vaultData' we generated before the API call
+            this.vaultState.masterKey.set(vaultData.rawMasterKey);
+            this.vaultState.privateKey.set(vaultData.rawPrivateKey);
+
             this.router.navigate(['/dashboard']);
           },
           error: (err) => {
