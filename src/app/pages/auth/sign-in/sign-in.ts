@@ -50,9 +50,26 @@ export class SignIn {
             );
 
             // 5. Save everything to Memory (VaultState)
-            this.vaultState.user.set(loginRes.data.user);
+            this.vaultState.user.set({
+              id: loginRes.data.user.id,
+              email: loginRes.data.user.email,
+              publicKey: loginRes.data.user.publicKey, // <--- Added this line
+            });
             this.vaultState.masterKey.set(masterKey);
             this.vaultState.privateKey.set(unlockedPrivKey);
+
+            //
+            // console.log('SIGN-IN SUCCESS: Saving user to VaultState:', loginRes.data.user);
+
+            // Provide the actual mapping from loginRes.data.user
+            // this.vaultState.user.set({
+            //   id: loginRes.data.user.id,
+            //   email: loginRes.data.user.email,
+            //   publicKey: loginRes.data.user.publicKey,
+            // });
+
+            // console.log('VAULTSTATE NOW CONTAINS:', this.vaultState.user());
+            //
 
             this.router.navigate(['/dashboard']);
           },
