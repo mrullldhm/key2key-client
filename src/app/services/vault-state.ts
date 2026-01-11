@@ -11,7 +11,7 @@ export class VaultState {
   privateKey = signal<CryptoKey | null>(null);
 
   // Basic user info (email, etc.)
-  user = signal<{ id: string; email: string } | null>(null);
+  user = signal<{ id: string; email: string; publicKey: string } | null>(null);
 
   // A computed signal to check if the vault is currently "unlocked"
   isUnlocked = computed(() => this.masterKey() !== null && this.privateKey() !== null);
@@ -20,6 +20,7 @@ export class VaultState {
    * Wipes all sensitive keys from memory.
    * Call this during Logout or if a security timeout occurs.
    */
+
   clearVault() {
     this.masterKey.set(null);
     this.privateKey.set(null);

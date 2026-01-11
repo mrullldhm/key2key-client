@@ -122,4 +122,52 @@ export class Crypto {
     const saltBuffer = new Uint8Array(saltHex.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)));
     return await this.deriveMasterKey(password, saltBuffer);
   }
+
+  /**
+   * PHASE 3: CREDENTIAL STORAGE
+   * Encrypts a credential using a unique Data Key,
+   * then wraps that key with the user's RSA Public Key.
+   */
+  /**
+   * Encrypts a credential and wraps the data key for the current user
+   */
+  async encryptCredential(credential: any, publicKeyStr: string) {
+    // 1. Generate a random AES Data Key (for this specific credential)
+    const dataKey = await window.crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, [
+      'encrypt',
+      'decrypt',
+    ]);
+
+    // 2. Encrypt the sensitive fields (Password/Notes)
+    const sensitiveData = JSON.stringify(credential);
+    const encryptedResult = await this.encryptData(
+      this.encoder.encode(sensitiveData).buffer as ArrayBuffer, // Add .buffer
+      dataKey
+    );
+    // 3. Export the Data Key so we can "wrap" it
+    const exportedDataKey = await window.crypto.subtle.exportKey('raw', dataKey);
+
+    // 4. Wrap (Encrypt) the Data Key with the User's Public RSA Key
+    const binaryPub = Uint8Array.from(atob(publicKeyStr), (c) => c.charCodeAt(0));
+    const rsaPublicKey = await window.crypto.subtle.importKey(
+      'spki',
+      binaryPub,
+      { name: 'RSA-OAEP', hash: 'SHA-256' },
+      true,
+      ['encrypt']
+    );
+
+    // 5. Wrap (Encrypt) the Data Key with the RSA Public Key
+    const wrappedKeyBuffer = await window.crypto.subtle.encrypt(
+      { name: 'RSA-OAEP' },
+      rsaPublicKey,
+      exportedDataKey
+    );
+
+    return {
+      encryptedData: encryptedResult.ciphertext,
+      iv: encryptedResult.iv,
+      encryptedDataKey: btoa(String.fromCharCode(...new Uint8Array(wrappedKeyBuffer))),
+    };
+  }
 }
