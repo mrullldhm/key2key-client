@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'app-first-timer',
@@ -7,5 +7,9 @@ import { Component } from '@angular/core';
   styleUrl: './first-timer.scss',
 })
 export class FirstTimer {
+  @Output() addFirst = new EventEmitter<void>();
 
+  addPassword() {
+    this.addFirst.emit();
+  }
 }
