@@ -170,4 +170,46 @@ export class Crypto {
       encryptedDataKey: btoa(String.fromCharCode(...new Uint8Array(wrappedKeyBuffer))),
     };
   }
+
+  /**
+   * PHASE 4: CREDENTIAL DECRYPTION
+   * Unwraps the AES Data Key using the RSA Private Key, then decrypts the content.
+   */
+  async decryptCredential(
+    encryptedData: string,
+    encryptedDataKey: string,
+    iv: string,
+    privateKey: CryptoKey
+  ) {
+    // 1. Decode everything from Base64
+    const encryptedDataBuffer = Uint8Array.from(atob(encryptedData), (c) => c.charCodeAt(0));
+    const encryptedKeyBuffer = Uint8Array.from(atob(encryptedDataKey), (c) => c.charCodeAt(0));
+    const ivBuffer = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
+
+    // 2. Unwrap (Decrypt) the AES Data Key using your RSA Private Key
+    const decryptedKeyBuffer = await window.crypto.subtle.decrypt(
+      { name: 'RSA-OAEP' },
+      privateKey,
+      encryptedKeyBuffer
+    );
+
+    // 3. Import the raw Data Key as an AES-GCM key
+    const dataKey = await window.crypto.subtle.importKey(
+      'raw',
+      decryptedKeyBuffer,
+      { name: 'AES-GCM' },
+      false,
+      ['decrypt']
+    );
+
+    // 4. Decrypt the actual sensitive data (the JSON string)
+    const decryptedContent = await window.crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ivBuffer },
+      dataKey,
+      encryptedDataBuffer
+    );
+
+    // 5. Convert back to a JSON object
+    return JSON.parse(new TextDecoder().decode(decryptedContent));
+  }
 }
