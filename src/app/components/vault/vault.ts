@@ -85,6 +85,7 @@ export class Vault implements OnInit {
               url: item.credential.logInUrl,
               updatedAt: item.credential.updateAt,
               ownerId: item.credential.userId,
+              ownerEmail: item.credential.user.email, // <--- Add this line
             });
           } catch (err) {
             console.error('Failed to decrypt item:', item.credential.title, err);
