@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, signal, effect } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { VaultState } from '../../services/vault-state';
@@ -14,21 +14,18 @@ import { CommonModule } from '@angular/common';
   templateUrl: './vault.html',
   styleUrl: './vault.scss',
 })
-export class Vault implements OnInit {
+export class Vault {
   private http = inject(HttpClient);
   public vaultState = inject(VaultState);
   private cryptoService = inject(Crypto);
 
-  // This will hold the decrypted passwords for display
+  // State Signals
   decryptedItems = signal<any[]>([]);
   isLoading = signal(true);
-
-  // Holds the single item the user clicked on
   selectedItem = signal<any | null>(null);
-  showSecret = signal(false); // For the popup's password visibility
-
-  isEditMode = signal(false); // Toggle between View and Edit mode
-  isUpdating = signal(false); // Loading state for the update button
+  showSecret = signal(false);
+  isEditMode = signal(false);
+  isUpdating = signal(false);
 
   // Sharing State
   shareEmail = signal('');
@@ -38,26 +35,38 @@ export class Vault implements OnInit {
     targetPublicKey: string;
     encryptedDataKey: string;
   } | null>(null);
-  accessList = signal<any[]>([]); // People who have access
+  accessList = signal<any[]>([]);
   isSharing = signal(false);
+  isAddModalOpen = signal(false);
+
+  constructor() {
+    /**
+     * REACTIVE FIX:
+     * We watch the privateKey signal. As soon as it's not null
+     * (meaning the app has finished initializing the session),
+     * we trigger the vault load.
+     */
+    effect(() => {
+      const privKey = this.vaultState.privateKey();
+      if (privKey) {
+        this.loadVault();
+      }
+    });
+  }
 
   // Filtered list based on search
   filteredItems = computed(() => {
     const query = this.vaultState.searchQuery().toLowerCase().trim();
     const items = this.decryptedItems();
-
     if (!query) return items;
-
     return items.filter((item) => item.title.toLowerCase().includes(query));
   });
-
-  ngOnInit() {
-    this.loadVault();
-  }
 
   async loadVault() {
     const privKey = this.vaultState.privateKey();
     if (!privKey) return;
+
+    this.isLoading.set(true);
 
     this.http.get<{ data: any[] }>(`${environment.apiUrl}/credential`).subscribe({
       next: async (res) => {
@@ -66,26 +75,25 @@ export class Vault implements OnInit {
 
         for (const item of encryptedList) {
           try {
-            // item.credential contains the encryptedUsername, encryptedPassword, and iv
-            // item.encryptedDataKey is the key we need to unwrap
-
+            // Unwrapping and Decrypting logic
             const decryptedData = await this.cryptoService.decryptCredential(
               item.credential.encryptedPassword,
               item.encryptedDataKey,
               item.credential.iv,
-              privKey
+              privKey,
             );
 
             decryptedList.push({
               id: item.credential.id,
               title: item.credential.title,
-              username: item.credential.encryptedUsername, // Or decrypt this if you encrypted it
+              username: item.credential.encryptedUsername,
               password: decryptedData.password,
               notes: decryptedData.notes,
               url: item.credential.logInUrl,
               updatedAt: item.credential.updateAt,
               ownerId: item.credential.userId,
-              ownerEmail: item.credential.user.email, // <--- Add this line
+              // Safety check: Fallback to 'System' if user relation is missing
+              ownerEmail: item.credential.user?.email || 'System',
             });
           } catch (err) {
             console.error('Failed to decrypt item:', item.credential.title, err);
@@ -107,14 +115,12 @@ export class Vault implements OnInit {
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
-  // Popup credential list
   selectItem(item: any) {
     this.showSecret.set(false);
     this.selectedItem.set({ ...item });
     this.isEditMode.set(false);
-    this.targetUser.set(null); // Reset share state
+    this.targetUser.set(null);
 
-    // Only fetch access list if you are the owner
     if (item.ownerId === this.vaultState.user()?.id) {
       this.fetchAccessList(item.id);
     }
@@ -128,7 +134,6 @@ export class Vault implements OnInit {
     }
   }
 
-  // UPDATE & DELETE
   toggleEdit() {
     this.isEditMode.update((v) => !v);
   }
@@ -140,10 +145,9 @@ export class Vault implements OnInit {
 
     this.isUpdating.set(true);
     try {
-      // Re-encrypt the potentially modified password/notes
       const encryptedPayload = await this.cryptoService.encryptCredential(
         { password: item.password, notes: item.notes },
-        user.publicKey
+        user.publicKey,
       );
 
       const payload = {
@@ -159,7 +163,7 @@ export class Vault implements OnInit {
       this.http.put(`${environment.apiUrl}/credential/${item.id}`, payload).subscribe({
         next: () => {
           this.isEditMode.set(false);
-          this.loadVault(); // Refresh list
+          this.loadVault();
           this.isUpdating.set(false);
         },
         error: (err) => {
@@ -187,7 +191,6 @@ export class Vault implements OnInit {
       });
     }
   }
-  //
 
   closePopup() {
     this.selectedItem.set(null);
@@ -197,29 +200,21 @@ export class Vault implements OnInit {
     this.showSecret.update((v) => !v);
   }
 
-  // Popup add credential
-  // Add this to your Vault class
-  isAddModalOpen = signal(false);
-
   openAddModal() {
     this.isAddModalOpen.set(true);
   }
 
   closeAddModal() {
     this.isAddModalOpen.set(false);
-    // Optional: Refresh the list after adding
     this.loadVault();
   }
 
-  // SHARED FUNCTION
-  // 1. Fetch the list of people who have access
   fetchAccessList(credentialId: string) {
     this.http
       .get<{ data: any[] }>(`${environment.apiUrl}/share/${credentialId}/access-list`)
       .subscribe((res) => this.accessList.set(res.data));
   }
 
-  // 2. Handshake: Check if the email exists and get their Public Key
   checkUser() {
     if (!this.shareEmail()) return;
     this.isCheckingEmail.set(true);
@@ -231,7 +226,7 @@ export class Vault implements OnInit {
       })
       .subscribe({
         next: (res) => {
-          this.targetUser.set(res.data); // Contains targetUserId and targetPublicKey
+          this.targetUser.set(res.data);
           this.isCheckingEmail.set(false);
         },
         error: (err) => {
@@ -241,7 +236,6 @@ export class Vault implements OnInit {
       });
   }
 
-  // 3. The Wrap & Confirm: Perform the encryption and save
   async grantAccess() {
     const target = this.targetUser();
     const selected = this.selectedItem();
@@ -251,47 +245,43 @@ export class Vault implements OnInit {
     this.isSharing.set(true);
 
     try {
-      // A. We need the raw Data Key. We get it by "unwrapping" the current one
-      // We'll use a modified version of your decrypt logic to get the key
       const encryptedKeyBuffer = Uint8Array.from(atob(target.encryptedDataKey), (c) =>
-        c.charCodeAt(0)
+        c.charCodeAt(0),
       );
 
       const decryptedRawKey = await window.crypto.subtle.decrypt(
         { name: 'RSA-OAEP' },
         privKey,
-        encryptedKeyBuffer
+        encryptedKeyBuffer,
       );
 
-      // B. Re-encrypt (Wrap) that raw key with the TARGET's Public Key
       const binaryPub = Uint8Array.from(atob(target.targetPublicKey), (c) => c.charCodeAt(0));
       const targetRsaKey = await window.crypto.subtle.importKey(
         'spki',
         binaryPub,
         { name: 'RSA-OAEP', hash: 'SHA-256' },
         true,
-        ['encrypt']
+        ['encrypt'],
       );
 
       const newlyWrappedKey = await window.crypto.subtle.encrypt(
         { name: 'RSA-OAEP' },
         targetRsaKey,
-        decryptedRawKey
+        decryptedRawKey,
       );
 
-      // C. Confirm with Backend
       const payload = {
         credentialId: selected.id,
         targetUserId: target.targetUserId,
         newlyEncryptedDataKey: btoa(String.fromCharCode(...new Uint8Array(newlyWrappedKey))),
-        iv: selected.iv || '', // Use existing IV
+        iv: selected.iv || '',
       };
 
       this.http.post(`${environment.apiUrl}/share/confirm-share`, payload).subscribe(() => {
         this.isSharing.set(false);
         this.targetUser.set(null);
         this.shareEmail.set('');
-        this.fetchAccessList(selected.id); // Refresh the list
+        this.fetchAccessList(selected.id);
       });
     } catch (err) {
       console.error('Sharing failed', err);
