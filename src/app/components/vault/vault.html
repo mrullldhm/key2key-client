@@ -11,11 +11,13 @@
   </div>
 
   @if (isLoading()) {
-    <div class="flex flex-col items-center justify-center py-20 space-y-4">
+    <div class="flex flex-col items-center justify-center py-20">
       <div
-        class="w-8 h-8 border-2 border-neutral-500 border-t-transparent rounded-full animate-spin"
+        class="w-6 h-6 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mb-4"
       ></div>
-      <p class="text-neutral-500 font-light tracking-wide">Decrypting your vault...</p>
+      <p class="text-neutral-500 font-light italic">
+        {{ !vaultState.privateKey() ? 'Unlocking your keys...' : 'Decrypting vault items...' }}
+      </p>
     </div>
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,7 +59,6 @@
             </span>
           </div>
         </div>
-
       } @empty {
         <div
           class="col-span-full flex flex-col items-center justify-center py-20 border-2 border-dashed border-neutral-800 rounded-2xl"
